@@ -1,9 +1,15 @@
 import 'package:coselig_staff_portal/auth_page.dart';
+import 'package:coselig_staff_portal/services/auth_service.dart';
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => AuthService(),
+      child: const MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {

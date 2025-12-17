@@ -33,6 +33,7 @@ class AuthService extends ChangeNotifier {
     );
 
     output = '正在登入...';
+    notifyListeners();
 
     try {
       final response = await http.post(
@@ -42,8 +43,10 @@ class AuthService extends ChangeNotifier {
       );
 
       output = 'HTTP status: ${response.statusCode}\nBody:\n${response.body}';
+      notifyListeners();
     } catch (e) {
       output = '請求失敗: $e';
+      notifyListeners();
     }
   }
 }
