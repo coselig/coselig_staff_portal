@@ -10,11 +10,16 @@ class StaffHomePage extends StatelessWidget {
     final authService = context.read<AuthService>();
     return Scaffold(
       appBar: AppBar(title: const Text('員工系統')),
-      body: Center(
-        child: Text(
-          '歡迎，${authService.username ?? '未知使用者'}',
-          style: const TextStyle(fontSize: 24),
-        ),
+      body: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          Text(
+            '歡迎，${authService.username ?? '員工'}！',
+            style: const TextStyle(fontSize: 24),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(onPressed: () {}, child: const Text('功能按鈕範例')),
+        ],
       ),
     );
   }

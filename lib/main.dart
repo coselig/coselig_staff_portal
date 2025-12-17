@@ -1,4 +1,3 @@
-import 'package:coselig_staff_portal/pages/auth_page.dart';
 import 'package:coselig_staff_portal/pages/splash_screen.dart';
 import 'package:coselig_staff_portal/services/auth_service.dart';
 import 'package:flutter/material.dart';
