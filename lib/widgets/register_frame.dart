@@ -50,8 +50,8 @@ class _RegisterFrameState extends State<RegisterFrame> {
                 passwordController.text,
               );
               // 假設 statusCode 200/201 視為登入成功
-              if (authService.output.contains('HTTP status: 200') ||
-                  authService.output.contains('HTTP status: 201')) {
+              if (authService.message.contains('HTTP status: 200') ||
+                  authService.message.contains('HTTP status: 201')) {
                 if (!mounted) return;
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const StaffHomePage()),
@@ -65,7 +65,7 @@ class _RegisterFrameState extends State<RegisterFrame> {
           Expanded(
             child: SingleChildScrollView(
               child: Text(
-                authService.output,
+                authService.message,
                 style: const TextStyle(fontFamily: 'Courier', fontSize: 14),
               ),
             ),

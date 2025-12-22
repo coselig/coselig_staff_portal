@@ -39,13 +39,11 @@ class _LoginFrameState extends State<LoginFrame> {
           SizedBox(height: 16),
           ElevatedButton(
             onPressed: () async {
-              await authService.login(
+              final success = await authService.login(
                 accountController.text,
                 passwordController.text,
               );
-              // 假設 statusCode 200/201 視為登入成功
-              if (authService.output.contains('HTTP status: 200') ||
-                  authService.output.contains('HTTP status: 201')) {
+              if (success) {
                 if (!mounted) return;
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const StaffHomePage()),
@@ -58,7 +56,7 @@ class _LoginFrameState extends State<LoginFrame> {
           Expanded(
             child: SingleChildScrollView(
               child: Text(
-                authService.output,
+                authService.message,
                 style: const TextStyle(fontFamily: 'Courier', fontSize: 14),
               ),
             ),

@@ -31,14 +31,24 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/ctc_icon.png', width: 150),
+            Image.asset(
+              'assets/ctc_icon.png',
+              width: MediaQuery.of(context).size.width * 0.3,
+            ),
             SizedBox(height: 24),
             Text(
-              'Coselig Staff Portal',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              '光悅員工系統',
+              style: TextStyle(
+                fontSize: MediaQuery.of(context).textScaler.scale(24),
+              ),
             ),
             SizedBox(height: 12),
-            Text('載入中...', style: TextStyle(fontSize: 16)),
+            Text(
+              '載入中...',
+              style: TextStyle(
+                fontSize: MediaQuery.of(context).textScaler.scale(24),
+              ),
+            ),
           ],
         ),
       ),

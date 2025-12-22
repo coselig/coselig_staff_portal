@@ -1,92 +1,166 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/browser_client.dart';
 
 class AuthService extends ChangeNotifier {
-  /// 嘗試自動登入（偵測 session cookie）
-  Future<void> tryAutoLogin() async {
-    final url = Uri.parse(
-      'https://employeeservice.coseligtest.workers.dev/api/me',
-    );
-    try {
-      final response = await http.get(
-        url,
-        headers: {'Content-Type': 'application/json'},
-      );
-      final data = jsonDecode(response.body);
-      if (response.statusCode == 200 && data['user'] != null) {
-        name = data['user']['name'];
-        email = data['user']['email'];
-        output = '自動登入成功';
-      } else {
-        name = null;
-        email = null;
-        output = '尚未登入';
-      }
-      notifyListeners();
-    } catch (e) {
-      output = '自動登入失敗: $e';
-      notifyListeners();
-    }
-  }
-  AuthService();
+  /// ⚠️ Flutter Web 必須用 BrowserClient 才能送 / 收 Cookie
+  final BrowserClient _client = BrowserClient()..withCredentials = true;
 
-  String output = '';
-  String? email;
+  static const String baseUrl =
+      'https://employeeservice.coseligtest.workers.dev';
+
   String? name;
-  Future<void> register(String name, String email, String password) async {
-    final url = Uri.parse(
-      "https://employeeservice.coseligtest.workers.dev/api/register",
-    );
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "name": name,
-        "email": email,
-        "password": password,
-        "role": "employee",
-      }),
-    );
+  String? email;
+  String? role;
+  bool isLoading = false;
+  String message = '';
 
-    if (response.statusCode == 201) {
-      notifyListeners();
-      output = "註冊成功！可以直接登入";
-    } else {
-      final data = jsonDecode(response.body);
-      notifyListeners();
-      output = "註冊失敗：${data['error'] ?? 'Unknown'}";
-    }
-  }
+  /// 是否已登入
+  bool get isLoggedIn => name != null;
 
-  Future<void> login(String email, String password) async {
-    final url = Uri.parse(
-      'https://employeeservice.coseligtest.workers.dev/api/login',
-    );
-
-    output = '正在登入...';
+  /* ========================
+   * 自動登入（讀取 session）
+   * ======================== */
+  Future<void> tryAutoLogin() async {
+    isLoading = true;
     notifyListeners();
 
     try {
-      final response = await http.post(
-        url,
+      final res = await _client.get(
+        Uri.parse('$baseUrl/api/me'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      final data = jsonDecode(res.body);
+
+      if (res.statusCode == 200 && data['user'] != null) {
+        name = data['user']['name'];
+        email = data['user']['email'];
+        role = data['user']['role'];
+        message = '自動登入成功';
+      } else {
+        _clearUser();
+        message = '尚未登入';
+      }
+    } catch (e) {
+      _clearUser();
+      message = '自動登入失敗: $e';
+    }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  /* =========
+   * 登入
+   * ========= */
+  Future<bool> login(String email, String password) async {
+    isLoading = true;
+    message = '正在登入...';
+    notifyListeners();
+
+    try {
+      final res = await _client.post(
+        Uri.parse('$baseUrl/api/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
       );
 
-      this.email = email; // 登入成功時儲存帳號
-      final data = jsonDecode(response.body);
-      if (response.statusCode == 200 && data['user'] != null) {
+      final data = jsonDecode(res.body);
+
+      if (res.statusCode == 200 && data['user'] != null) {
         name = data['user']['name'];
+        this.email = data['user']['email'];
+        role = data['user']['role'];
+        message = '登入成功';
+        isLoading = false;
+        notifyListeners();
+        return true;
       } else {
-        name = null;
+        _clearUser();
+        message = data['error'] ?? '登入失敗';
       }
-      output = 'HTTP status: ${response.statusCode}\nBody:\n${response.body}';
-      notifyListeners();
     } catch (e) {
-      output = '請求失敗: $e';
-      notifyListeners();
+      message = '請求失敗: $e';
     }
+
+    isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
+  /* =========
+   * 註冊
+   * ========= */
+  Future<bool> register(String name, String email, String password) async {
+    isLoading = true;
+    message = '註冊中...';
+    notifyListeners();
+
+    try {
+      final res = await _client.post(
+        Uri.parse('$baseUrl/api/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+          'role': 'employee',
+        }),
+      );
+
+      final data = jsonDecode(res.body);
+
+      if (res.statusCode == 201) {
+        message = '註冊成功，請登入';
+        isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        message = data['error'] ?? '註冊失敗';
+      }
+    } catch (e) {
+      message = '請求失敗: $e';
+    }
+
+    isLoading = false;
+    notifyListeners();
+    return false;
+  }
+
+  /* =========
+   * 登出
+   * ========= */
+  Future<void> logout() async {
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await _client.post(
+        Uri.parse('$baseUrl/api/logout'),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (_) {}
+
+    _clearUser();
+    message = '已登出';
+    isLoading = false;
+    notifyListeners();
+  }
+
+  /* =========
+   * 工具
+   * ========= */
+  void _clearUser() {
+    name = null;
+    email = null;
+    role = null;
+  }
+
+  @override
+  void dispose() {
+    _client.close();
+    super.dispose();
   }
 }
