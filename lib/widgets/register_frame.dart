@@ -44,14 +44,12 @@ class _RegisterFrameState extends State<RegisterFrame> {
           SizedBox(height: 16),
           ElevatedButton(
             onPressed: () async {
-              await authService.register(
-                emailController.text,
+              final success = await authService.register(
                 usernameController.text,
+                emailController.text,
                 passwordController.text,
               );
-              // 假設 statusCode 200/201 視為登入成功
-              if (authService.message.contains('HTTP status: 200') ||
-                  authService.message.contains('HTTP status: 201')) {
+              if (success) {
                 if (!mounted) return;
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const StaffHomePage()),
@@ -61,14 +59,10 @@ class _RegisterFrameState extends State<RegisterFrame> {
             },
             child: const Text('註冊'),
           ),
-
-          Expanded(
-            child: SingleChildScrollView(
-              child: Text(
-                authService.message,
-                style: const TextStyle(fontFamily: 'Courier', fontSize: 14),
-              ),
-            ),
+          SizedBox(height: 8),
+          Text(
+            authService.message,
+            style: const TextStyle(color: Colors.red, fontSize: 14),
           ),
         ],
       ),

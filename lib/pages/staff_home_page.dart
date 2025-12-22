@@ -9,7 +9,7 @@ class StaffHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authService = context.read<AuthService>();
-    final attendance = context.read<AttendanceService>();
+    final attendance = context.watch<AttendanceService>();
     return Scaffold(
       appBar: AppBar(title: const Text('員工系統')),
       body: ListView(
@@ -23,17 +23,25 @@ class StaffHomePage extends StatelessWidget {
           ElevatedButton(
             onPressed: attendance.hasCheckedIn
                 ? null
-                : () => attendance.checkIn("1"),
+                : () async {
+                    await attendance.checkIn("1");
+                  },
             child: const Text('上班打卡'),
           ),
-
           ElevatedButton(
             onPressed: attendance.hasCheckedOut
                 ? null
-                : () => attendance.checkOut("1"),
+                : () async {
+                    await attendance.checkOut("1");
+                  },
             child: const Text('下班打卡'),
           ),
-
+          SizedBox(height: 16),
+          if (attendance.errorMessage != null)
+            Text(
+              attendance.errorMessage!,
+              style: const TextStyle(color: Colors.red, fontSize: 14),
+            ),
         ],
       ),
     );

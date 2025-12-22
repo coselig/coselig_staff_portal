@@ -53,6 +53,11 @@ class _LoginFrameState extends State<LoginFrame> {
             },
             child: const Text('登入'),
           ),
+          SizedBox(height: 8),
+          Text(
+            authService.message,
+            style: const TextStyle(color: Colors.red, fontSize: 14),
+          ),
           Expanded(
             child: SingleChildScrollView(
               child: Text(
