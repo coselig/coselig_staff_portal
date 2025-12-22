@@ -13,6 +13,7 @@ class AuthService extends ChangeNotifier {
   String? name;
   String? email;
   String? role;
+  String? userId;
   bool isLoading = false;
   String message = '';
 
@@ -38,6 +39,7 @@ class AuthService extends ChangeNotifier {
         name = data['user']['name'];
         email = data['user']['email'];
         role = data['user']['role'];
+        userId = data['user']['id']?.toString();
         message = '自動登入成功';
       } else {
         _clearUser();
@@ -73,6 +75,7 @@ class AuthService extends ChangeNotifier {
         name = data['user']['name'];
         this.email = data['user']['email'];
         role = data['user']['role'];
+        userId = data['user']['id']?.toString();
         message = '登入成功';
         isLoading = false;
         notifyListeners();
@@ -156,6 +159,7 @@ class AuthService extends ChangeNotifier {
     name = null;
     email = null;
     role = null;
+    userId = null;
   }
 
   @override

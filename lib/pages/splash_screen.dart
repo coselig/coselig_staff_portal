@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+
+import 'package:provider/provider.dart';
 import 'package:coselig_staff_portal/pages/auth_page.dart';
+import 'package:coselig_staff_portal/pages/staff_home_page.dart';
+import 'package:coselig_staff_portal/services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -9,19 +12,25 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
+
 class _SplashScreenState extends State<SplashScreen> {
+  bool _navigated = false;
+
   @override
-  void initState() {
-    super.initState();
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const AuthPage()),
-          );
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final authService = context.watch<AuthService>();
+    if (!_navigated && !authService.isLoading) {
+      _navigated = true;
+      Future.microtask(() {
+        if (!mounted) return;
+        if (authService.isLoggedIn) {
+          Navigator.of(context).pushReplacementNamed('/home');
+        } else {
+          Navigator.of(context).pushReplacementNamed('/login');
         }
       });
-    });
+    }
   }
 
   @override
