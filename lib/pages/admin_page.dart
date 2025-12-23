@@ -5,6 +5,7 @@ import 'package:coselig_staff_portal/widgets/attendance_calendar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:coselig_staff_portal/main.dart';
+import 'package:coselig_staff_portal/services/excel_export_service.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -14,6 +15,7 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
+  final ExcelExportService _excelExportService = ExcelExportService();
   DateTime _selectedMonth = DateTime.now();
   Map<String, Map<String, dynamic>> _allEmployeesRecords = {};
   bool _isLoading = false;
@@ -156,6 +158,40 @@ class _AdminPageState extends State<AdminPage> {
               ],
             ),
             const SizedBox(height: 20),
+            if (_allEmployeesRecords.isNotEmpty)
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton.icon(
+                  icon: Icon(Icons.download),
+                  label: Text('匯出Excel'),
+                  onPressed: () async {
+                    final userId = _allEmployeesRecords.keys.first;
+                    final employeeData = _allEmployeesRecords[userId]!;
+                    final employee =
+                        employeeData['employee'] as Map<String, dynamic>;
+                    final records = Map<int, dynamic>.from(
+                      employeeData['records'] as Map,
+                    );
+                    final employeeName = employee['name'] ?? '員工';
+                    final employeeId = employee['id']?.toString() ?? userId;
+                    try {
+                      await _excelExportService.exportAttendanceRecords(
+                        employeeName: employeeName,
+                        employeeId: employeeId,
+                        monthRecords: records,
+                        month: _selectedMonth,
+                      );
+                      scaffoldMessengerKey.currentState!.showSnackBar(
+                        const SnackBar(content: Text('Excel檔案匯出成功')),
+                      );
+                    } catch (e) {
+                      scaffoldMessengerKey.currentState!.showSnackBar(
+                        SnackBar(content: Text('匯出失敗: $e')),
+                      );
+                    }
+                  },
+                ),
+              ),
             Text(
               '員工打卡總覽 - ${_selectedMonth.year}年${_selectedMonth.month}月',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
