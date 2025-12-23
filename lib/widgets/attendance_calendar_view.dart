@@ -2,12 +2,16 @@ import 'package:coselig_staff_portal/utils/time_utils.dart';
 import 'package:flutter/material.dart';
 
 /// 月曆視圖元件，顯示一個月的打卡、請假、假日狀態
+typedef OnManualPunch = void Function(int day, dynamic record);
+
 class AttendanceCalendarView extends StatelessWidget {
   final DateTime month;
   final Map<int, dynamic> recordsMap; // day -> record
   final Map<int, List<dynamic>> leaveDaysMap; // day -> leave list
   final Map<int, dynamic> holidaysMap; // day -> holiday
   final int? todayDay;
+
+  final OnManualPunch? onManualPunch;
 
   const AttendanceCalendarView({
     super.key,
@@ -16,6 +20,7 @@ class AttendanceCalendarView extends StatelessWidget {
     required this.leaveDaysMap,
     required this.holidaysMap,
     this.todayDay,
+    this.onManualPunch,
   });
 
   @override
@@ -153,6 +158,11 @@ class AttendanceCalendarView extends StatelessWidget {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () {},
+        onLongPress: () {
+          if (onManualPunch != null) {
+            onManualPunch!(day, record);
+          }
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           margin: const EdgeInsets.all(4),

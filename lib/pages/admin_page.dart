@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:coselig_staff_portal/main.dart';
 import 'package:coselig_staff_portal/services/excel_export_service.dart';
+import 'package:coselig_staff_portal/widgets/manual_punch_dialog.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -253,6 +254,41 @@ class _AdminPageState extends State<AdminPage> {
                                           leaveDaysMap: const {},
                                           holidaysMap: const {},
                                           todayDay: null,
+                                      onManualPunch: (day, record) async {
+                                        final date = DateTime(
+                                          _selectedMonth.year,
+                                          _selectedMonth.month,
+                                          day,
+                                        );
+                                        String? checkInTime;
+                                        String? checkOutTime;
+                                        if (record is Map<String, dynamic>) {
+                                          checkInTime = record['check_in_time'];
+                                          checkOutTime =
+                                              record['check_out_time'];
+                                        }
+                                        await showDialog(
+                                          context: context,
+                                          builder: (context) => ManualPunchDialog(
+                                            employeeName:
+                                                employee['name'] ?? '員工',
+                                            date: date,
+                                            checkInTime: checkInTime,
+                                            checkOutTime: checkOutTime,
+                                            onSubmit: (inTime, outTime) {
+                                              // TODO: 補打卡 API 呼叫
+                                              scaffoldMessengerKey.currentState!
+                                                  .showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        '補打卡 $day: 上班 $inTime, 下班 $outTime',
+                                                      ),
+                                                    ),
+                                                  );
+                                            },
+                                          ),
+                                        );
+                                      },
                                         ),
                                       ),
                                     ),
