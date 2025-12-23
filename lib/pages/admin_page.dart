@@ -153,8 +153,8 @@ class _AdminPageState extends State<AdminPage> {
                 ),
                 const SizedBox(width: 16),
                 ElevatedButton(
-                  child: Text('查詢'),
                   onPressed: _fetchEmployeeAttendance,
+                  child: Text('查詢'),
                 ),
               ],
             ),

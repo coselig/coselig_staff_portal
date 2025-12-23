@@ -135,7 +135,28 @@ class _StaffHomePageState extends State<StaffHomePage> {
               ElevatedButton(
                 onPressed: () async {
                   if (userId != null) {
-                    await attendance.checkIn(userId);
+                    final result = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(attendance.hasCheckedIn ? '補上班打卡' : '上班打卡'),
+                        content: Text(
+                          '是否要${attendance.hasCheckedIn ? '重新' : ''}打卡？',
+                        ),
+                        actions: [
+                          TextButton(
+                            child: Text('取消'),
+                            onPressed: () => Navigator.of(context).pop(false),
+                          ),
+                          ElevatedButton(
+                            child: Text('確定'),
+                            onPressed: () => Navigator.of(context).pop(true),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (result == true) {
+                      await attendance.checkIn(userId);
+                    }
                   }
                 },
                 child: Text(attendance.hasCheckedIn ? '補上班打卡' : '上班打卡'),
@@ -150,7 +171,30 @@ class _StaffHomePageState extends State<StaffHomePage> {
               ElevatedButton(
                 onPressed: () async {
                   if (userId != null) {
-                    await attendance.checkOut(userId);
+                    final result = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(
+                          attendance.hasCheckedOut ? '補下班打卡' : '下班打卡',
+                        ),
+                        content: Text(
+                          '是否要${attendance.hasCheckedOut ? '重新' : ''}打卡？',
+                        ),
+                        actions: [
+                          TextButton(
+                            child: Text('取消'),
+                            onPressed: () => Navigator.of(context).pop(false),
+                          ),
+                          ElevatedButton(
+                            child: Text('確定'),
+                            onPressed: () => Navigator.of(context).pop(true),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (result == true) {
+                      await attendance.checkOut(userId);
+                    }
                   }
                 },
                 child: Text(attendance.hasCheckedOut ? '補下班打卡' : '下班打卡'),
