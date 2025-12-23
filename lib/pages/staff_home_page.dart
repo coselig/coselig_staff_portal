@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:coselig_staff_portal/services/auth_service.dart';
 import 'package:coselig_staff_portal/widgets/month_year_picker.dart';
 import 'package:coselig_staff_portal/widgets/attendance_calendar_view.dart';
+import 'package:coselig_staff_portal/main.dart';
 
 class StaffHomePage extends StatefulWidget {
   const StaffHomePage({super.key});
@@ -48,7 +49,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
       );
       setState(() {
         _monthRecords = records;
-        print('[StaffHomePage][_monthRecords] $_monthRecords');
+        debugPrint('[StaffHomePage][_monthRecords] $_monthRecords');
       });
     }
   }
@@ -69,11 +70,11 @@ class _StaffHomePageState extends State<StaffHomePage> {
             icon: const Icon(Icons.refresh),
             tooltip: '手動刷新',
             onPressed: () async {
-              print('[StaffHomePage][refresh] userId: $userId');
+              debugPrint('[StaffHomePage][refresh] userId: $userId');
               if (userId != null) {
                 await attendance.getTodayAttendance(userId);
                 await _fetchMonthAttendance();
-                print(
+                debugPrint(
                   '[StaffHomePage][refresh] after getTodayAttendance & getMonthAttendance',
                 );
                 if (context.mounted) {
@@ -89,8 +90,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
             tooltip: '登出',
             onPressed: () async {
               await authService.logout();
-              if (!mounted) return;
-              Navigator.of(context).pushReplacementNamed('/login');
+              navigatorKey.currentState!.pushReplacementNamed('/login');
             },
           ),
         ],
@@ -104,8 +104,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
               title: Text('登出'),
               onTap: () async {
                 await authService.logout();
-                if (!mounted) return;
-                Navigator.of(context).pushReplacementNamed('/login');
+                navigatorKey.currentState!.pushReplacementNamed('/login');
               },
             ),
           ],

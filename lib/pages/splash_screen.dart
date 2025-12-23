@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
-import 'package:coselig_staff_portal/pages/auth_page.dart';
-import 'package:coselig_staff_portal/pages/staff_home_page.dart';
 import 'package:coselig_staff_portal/services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
