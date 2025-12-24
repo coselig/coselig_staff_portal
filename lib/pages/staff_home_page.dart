@@ -133,33 +133,38 @@ class _StaffHomePageState extends State<StaffHomePage> {
             children: [
               Expanded(child: Text('今日上班時間：${formatTime(checkInTime)}')),
               ElevatedButton(
-                onPressed: () async {
-                  if (userId != null) {
-                    final result = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text(attendance.hasCheckedIn ? '補上班打卡' : '上班打卡'),
-                        content: Text(
-                          '是否要${attendance.hasCheckedIn ? '重新' : ''}打卡？',
-                        ),
-                        actions: [
-                          TextButton(
-                            child: Text('取消'),
-                            onPressed: () => Navigator.of(context).pop(false),
-                          ),
-                          ElevatedButton(
-                            child: Text('確定'),
-                            onPressed: () => Navigator.of(context).pop(true),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (result == true) {
-                      await attendance.checkIn(userId);
-                    }
-                  }
-                },
-                child: Text(attendance.hasCheckedIn ? '補上班打卡' : '上班打卡'),
+                onPressed: attendance.hasCheckedIn
+                    ? null
+                    : () async {
+                        if (userId != null) {
+                          final result = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('上班打卡'),
+                              content: Text('是否要打卡？'),
+                              actions: [
+                                TextButton(
+                                  child: Text('取消'),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
+                                ),
+                                ElevatedButton(
+                                  child: Text('確定'),
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (result == true) {
+                            await attendance.checkIn(userId);
+                            // 打卡後自動刷新
+                            await attendance.getTodayAttendance(userId);
+                            await _fetchMonthAttendance();
+                          }
+                        }
+                      },
+                child: Text(attendance.hasCheckedIn ? '已上班打卡' : '上班打卡'),
               ),
             ],
           ),
@@ -194,6 +199,9 @@ class _StaffHomePageState extends State<StaffHomePage> {
                     );
                     if (result == true) {
                       await attendance.checkOut(userId);
+                      // 打卡後自動刷新
+                      await attendance.getTodayAttendance(userId);
+                      await _fetchMonthAttendance();
                     }
                   }
                 },

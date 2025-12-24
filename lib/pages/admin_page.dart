@@ -117,7 +117,7 @@ class _AdminPageState extends State<AdminPage> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _selectedEmployeeId,
+                    initialValue: _selectedEmployeeId,
                     decoration: const InputDecoration(
                       labelText: '選擇員工',
                       border: OutlineInputBorder(),

@@ -59,11 +59,10 @@ class AttendanceCalendarView extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final availableWidth = constraints.maxWidth.clamp(
+            constraints.maxWidth.clamp(
               280.0,
               420.0,
             ); // 最小280，最大420
-            final cellSize = availableWidth / 7;
             return Column(
               children: [
                 GridView.count(
@@ -96,16 +95,6 @@ class AttendanceCalendarView extends StatelessWidget {
     );
   }
 
-  String _debugRecordString(dynamic record) {
-    if (record is Map<String, dynamic>) {
-      String checkIn = record['check_in_time'] ?? '';
-      String checkOut = record['check_out_time'] ?? '';
-      String day = record['day']?.toString() ?? '';
-      return 'day:$day\n上:${formatTime(checkIn)} 下:${formatTime(checkOut)}';
-    }
-    return record.toString();
-  }
-
   Widget _buildCalendarDay(
     BuildContext context,
     int day,
@@ -117,22 +106,18 @@ class AttendanceCalendarView extends StatelessWidget {
   ) {
     Color backgroundColor;
     Color textColor = Colors.black87;
-    IconData? icon;
     String status = '';
     if (holiday != null) {
       backgroundColor = Colors.red.shade100;
       textColor = Colors.red.shade700;
-      icon = Icons.celebration;
       status = '假日';
     } else if (leaveRequests != null && leaveRequests.isNotEmpty) {
       backgroundColor = Colors.pink.shade100;
       textColor = Colors.pink.shade900;
-      icon = Icons.event_busy;
       status = '請假';
     } else if (record != null) {
       backgroundColor = Colors.green.shade100;
       textColor = Colors.green.shade900;
-      icon = Icons.check_circle;
       // 顯示上班/下班時間
       String checkIn = record['check_in_time'] ?? '';
       String checkOut = record['check_out_time'] ?? '';
@@ -177,8 +162,14 @@ class AttendanceCalendarView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('$day', style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 18)),
-              if (icon != null) Icon(icon, size: 24, color: textColor),
+              Text(
+                '$day',
+                style: TextStyle(
+                  color: textColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
               if (status.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
@@ -186,16 +177,6 @@ class AttendanceCalendarView extends StatelessWidget {
                     status,
                     style: TextStyle(color: textColor, fontSize: 12),
                     textAlign: TextAlign.center,
-                  ),
-                ),
-              if (record != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    _debugRecordString(record),
-                    style: const TextStyle(fontSize: 10, color: Colors.grey),
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
 
