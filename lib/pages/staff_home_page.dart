@@ -1,3 +1,4 @@
+import 'package:coselig_staff_portal/services/holiday_service.dart';
 import 'package:coselig_staff_portal/utils/time_utils.dart';
 import 'package:coselig_staff_portal/services/attendance_service.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,34 @@ class StaffHomePage extends StatefulWidget {
 }
 
 class _StaffHomePageState extends State<StaffHomePage> {
+  Map<int, dynamic> _holidaysMap = {};
+
+  Future<void> _fetchHolidays() async {
+    final year = _selectedMonth.year;
+    final month = _selectedMonth.month;
+    try {
+      final holidayService = HolidayService();
+      final holidays = await holidayService.fetchTaiwanHolidays(year);
+      debugPrint('[Holiday] ${year}年取得假日數量: ${holidays.length}');
+      final Map<int, dynamic> map = {};
+      for (final h in holidays) {
+        final date = DateTime.parse(h.date);
+        if (date.month == month) {
+          map[date.day] = h.name;
+          debugPrint('[Holiday] ${h.date} ${h.name} 加入本月假日');
+        }
+      }
+      debugPrint('[Holiday] ${month}月假日map: $map');
+      setState(() {
+        _holidaysMap = map;
+      });
+    } catch (e) {
+      debugPrint('[Holiday] 取得假日失敗: $e');
+      setState(() {
+        _holidaysMap = {};
+      });
+    }
+  }
   List<Map<String, dynamic>> _workingStaff = [];
   bool _loadingWorkingStaff = false;
 
@@ -62,6 +91,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
     super.initState();
     Future.microtask(_initUserAndAttendance);
     Future.microtask(_fetchWorkingStaff);
+    Future.microtask(_fetchHolidays);
   }
 
   Future<void> _initUserAndAttendance() async {
@@ -90,6 +120,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
         _monthRecords = records;
         debugPrint('[StaffHomePage][_monthRecords] $_monthRecords');
       });
+      await _fetchHolidays();
     }
   }
 
@@ -326,6 +357,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
                       _selectedMonth = DateTime(result.year, result.month);
                     });
                     await _fetchMonthAttendance();
+                    await _fetchHolidays();
                     scaffoldMessengerKey.currentState!.showSnackBar(
                       SnackBar(
                         content: Text('選擇的日期:${result.year}/${result.month}'),
@@ -371,12 +403,17 @@ class _StaffHomePageState extends State<StaffHomePage> {
                 month: _selectedMonth,
                 recordsMap: _monthRecords,
                 leaveDaysMap: {},
-                holidaysMap: {},
+                holidaysMap: _holidaysMap,
                 todayDay:
                     (_selectedMonth.year == DateTime.now().year &&
                         _selectedMonth.month == DateTime.now().month)
                     ? DateTime.now().day
                     : null,
+                // debug
+                // ignore: avoid_print
+                // ignore: avoid_print
+                // ignore: avoid_print
+                // ignore: avoid_print
               ),
             ),
           ),
