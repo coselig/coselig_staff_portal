@@ -57,13 +57,37 @@ class AttendanceService extends ChangeNotifier {
       '[AttendanceService][getMonthAttendance] response body: ${res.body}',
     );
     if (res.statusCode == 200) {
-      // 假設 API 回傳格式: { "records": [ { "day": 1, ... }, ... ] }
+      // 假設 API 回傳格式: { "records": [ { "day": 1, "period1_check_in_time": ..., ... }, ... ] }
       final data = jsonDecode(res.body);
       final records = data['records'] as List<dynamic>? ?? [];
       final Map<int, dynamic> recordsMap = {};
       for (final record in records) {
         if (record is Map<String, dynamic> && record['day'] != null) {
-          recordsMap[record['day']] = record;
+          final day = record['day'] as int;
+          // 提取所有時段的 check_in 和 check_out
+          final checkInKeys = record.keys.where(
+            (k) => k.endsWith('_check_in_time') && record[k] != null,
+          );
+          final checkOutKeys = record.keys.where(
+            (k) => k.endsWith('_check_out_time') && record[k] != null,
+          );
+          final checkInTimes = checkInKeys
+              .map((k) => record[k] as String)
+              .toList();
+          final checkOutTimes = checkOutKeys
+              .map((k) => record[k] as String)
+              .toList();
+          // 取最早的上班和最晚的下班
+          final earliestCheckIn = checkInTimes.isNotEmpty
+              ? checkInTimes.reduce((a, b) => a.compareTo(b) < 0 ? a : b)
+              : null;
+          final latestCheckOut = checkOutTimes.isNotEmpty
+              ? checkOutTimes.reduce((a, b) => a.compareTo(b) > 0 ? a : b)
+              : null;
+          recordsMap[day] = {
+            'check_in_time': earliestCheckIn,
+            'check_out_time': latestCheckOut,
+          };
         }
       }
       debugPrint(
@@ -77,12 +101,12 @@ class AttendanceService extends ChangeNotifier {
   }
 
   /// 上班打卡
-  Future<bool> checkIn(String userId) async {
-    debugPrint('[AttendanceService][checkIn] userId: $userId');
+  Future<bool> checkIn(String userId, {String period = 'morning'}) async {
+    debugPrint('[AttendanceService][checkIn] userId: $userId, period: $period');
     final res = await _client.post(
       Uri.parse('$baseUrl/api/attendance/check-in'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'user_id': userId}),
+      body: jsonEncode({'user_id': userId, 'period': period}),
     );
 
     if (res.statusCode == 200) {
@@ -96,12 +120,12 @@ class AttendanceService extends ChangeNotifier {
   }
 
   /// 下班打卡
-  Future<bool> checkOut(String userId) async {
-    print('[AttendanceService][checkOut] userId: $userId');
+  Future<bool> checkOut(String userId, {String period = 'morning'}) async {
+    print('[AttendanceService][checkOut] userId: $userId, period: $period');
     final res = await _client.post(
       Uri.parse('$baseUrl/api/attendance/check-out'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'user_id': userId}),
+      body: jsonEncode({'user_id': userId, 'period': period}),
     );
 
     if (res.statusCode == 200) {
@@ -137,6 +161,19 @@ class AttendanceService extends ChangeNotifier {
 
   bool get hasCheckedOut =>
       todayAttendance?['check_out_time'] != null;
+
+  // 新增時段打卡檢查
+  bool get hasCheckedInMorning =>
+      todayAttendance?['morning_check_in_time'] != null;
+
+  bool get hasCheckedOutMorning =>
+      todayAttendance?['morning_check_out_time'] != null;
+
+  bool get hasCheckedInAfternoon =>
+      todayAttendance?['afternoon_check_in_time'] != null;
+
+  bool get hasCheckedOutAfternoon =>
+      todayAttendance?['afternoon_check_out_time'] != null;
 
   /// 清空打卡數據
   void clear() {

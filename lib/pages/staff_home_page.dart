@@ -62,12 +62,12 @@ class _StaffHomePageState extends State<StaffHomePage> {
         await attendance.getTodayAttendance(empId);
         final today = attendance.todayAttendance;
         if (today != null &&
-            today['check_in_time'] != null &&
-            today['check_out_time'] == null) {
+            today['period1_check_in_time'] != null &&
+            today['period1_check_out_time'] == null) {
           working.add({
             'name': emp['name'] ?? '員工',
             'id': empId,
-            'check_in_time': today['check_in_time'],
+            'check_in_time': today['period1_check_in_time'],
           });
         }
       }
@@ -86,6 +86,8 @@ class _StaffHomePageState extends State<StaffHomePage> {
   DateTime _selectedMonth = DateTime.now();
   Map<int, dynamic> _monthRecords = {};
   final ExcelExportService _excelExportService = ExcelExportService();
+
+  int periodCount = 1; // 動態時段數量
 
   @override
   void initState() {
@@ -185,8 +187,6 @@ class _StaffHomePageState extends State<StaffHomePage> {
     final authService = context.read<AuthService>();
     final attendance = context.watch<AttendanceService>();
     final userId = authService.userId;
-    String? checkInTime = attendance.todayAttendance?['check_in_time'];
-    String? checkOutTime = attendance.todayAttendance?['check_out_time'];
 
     return Scaffold(
       appBar: AppBar(
@@ -258,86 +258,137 @@ class _StaffHomePageState extends State<StaffHomePage> {
             style: const TextStyle(fontSize: 24),
           ),
           const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Expanded(child: Text('今日上班時間：${formatTime(checkInTime)}')),
-              ElevatedButton(
-                onPressed: attendance.hasCheckedIn
-                    ? null
-                    : () async {
-                        if (userId != null) {
-                          final result = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: Text('上班打卡'),
-                              content: Text('是否要打卡？'),
-                              actions: [
-                                TextButton(
-                                  child: Text('取消'),
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(false),
-                                ),
-                                ElevatedButton(
-                                  child: Text('確定'),
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(true),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (result == true) {
-                            await attendance.checkIn(userId);
-                            // 打卡後自動刷新
-                            await attendance.getTodayAttendance(userId);
-                            await _fetchMonthAttendance();
-                          }
-                        }
-                      },
-                child: Text(attendance.hasCheckedIn ? '已上班打卡' : '上班打卡'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Expanded(child: Text('今日下班時間：${formatTime(checkOutTime)}')),
-              ElevatedButton(
-                onPressed: () async {
-                  if (userId != null) {
-                    final result = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text(
-                          attendance.hasCheckedOut ? '補下班打卡' : '下班打卡',
+          // 動態時段
+          Column(
+            children: List.generate(periodCount, (index) {
+              final period = 'period${index + 1}';
+              final periodName = '時段${index + 1}';
+              final checkInTime =
+                  attendance.todayAttendance?['${period}_check_in_time'];
+              final checkOutTime =
+                  attendance.todayAttendance?['${period}_check_out_time'];
+              final hasCheckedIn =
+                  attendance.todayAttendance?['${period}_check_in_time'] !=
+                  null;
+              final hasCheckedOut =
+                  attendance.todayAttendance?['${period}_check_out_time'] !=
+                  null;
+              return Column(
+                children: [
+                  // 上班
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${periodName}上班時間：${formatTime(checkInTime)}',
                         ),
-                        content: Text(
-                          '是否要${attendance.hasCheckedOut ? '重新' : ''}打卡？',
-                        ),
-                        actions: [
-                          TextButton(
-                            child: Text('取消'),
-                            onPressed: () => Navigator.of(context).pop(false),
-                          ),
-                          ElevatedButton(
-                            child: Text('確定'),
-                            onPressed: () => Navigator.of(context).pop(true),
-                          ),
-                        ],
                       ),
-                    );
-                    if (result == true) {
-                      await attendance.checkOut(userId);
-                      // 打卡後自動刷新
-                      await attendance.getTodayAttendance(userId);
-                      await _fetchMonthAttendance();
-                    }
-                  }
-                },
-                child: Text(attendance.hasCheckedOut ? '補下班打卡' : '下班打卡'),
-              ),
-            ],
+                      ElevatedButton(
+                        onPressed: hasCheckedIn
+                            ? null
+                            : () async {
+                                if (userId != null) {
+                                  final result = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text('${periodName}上班打卡'),
+                                      content: Text('是否要打卡？'),
+                                      actions: [
+                                        TextButton(
+                                          child: Text('取消'),
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(false),
+                                        ),
+                                        ElevatedButton(
+                                          child: Text('確定'),
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(true),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (result == true) {
+                                    await attendance.checkIn(
+                                      userId,
+                                      period: period,
+                                    );
+                                    // 打卡後自動刷新
+                                    await attendance.getTodayAttendance(userId);
+                                    await _fetchMonthAttendance();
+                                  }
+                                }
+                              },
+                        child: Text(
+                          hasCheckedIn
+                              ? '已${periodName}上班打卡'
+                              : '${periodName}上班打卡',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  // 下班
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${periodName}下班時間：${formatTime(checkOutTime)}',
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (userId != null) {
+                            final result = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text(
+                                  hasCheckedOut
+                                      ? '補${periodName}下班打卡'
+                                      : '${periodName}下班打卡',
+                                ),
+                                content: Text(
+                                  '是否要${hasCheckedOut ? '重新' : ''}打卡？',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    child: Text('取消'),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
+                                  ),
+                                  ElevatedButton(
+                                    child: Text('確定'),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(true),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (result == true) {
+                              await attendance.checkOut(userId, period: period);
+                              // 打卡後自動刷新
+                              await attendance.getTodayAttendance(userId);
+                              await _fetchMonthAttendance();
+                            }
+                          }
+                        },
+                        child: Text(
+                          hasCheckedOut
+                              ? '補${periodName}下班打卡'
+                              : '${periodName}下班打卡',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              );
+            }),
+          ),
+          ElevatedButton(
+            child: Text('新增時段'),
+            onPressed: () => setState(() => periodCount++),
           ),
           SizedBox(height: 16),
           if (attendance.errorMessage != null)
