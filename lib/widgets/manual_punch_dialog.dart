@@ -164,8 +164,12 @@ class _ManualPunchDialogState extends State<ManualPunchDialog> {
             final result = <String, Map<String, String?>>{};
             _periodsTimes.forEach((period, times) {
               result[period] = {
-                'check_in': times['check_in']?.format(context),
-                'check_out': times['check_out']?.format(context),
+                'check_in': times['check_in'] != null
+                    ? '${times['check_in']!.hour.toString().padLeft(2, '0')}:${times['check_in']!.minute.toString().padLeft(2, '0')}'
+                    : null,
+                'check_out': times['check_out'] != null
+                    ? '${times['check_out']!.hour.toString().padLeft(2, '0')}:${times['check_out']!.minute.toString().padLeft(2, '0')}'
+                    : null,
               };
             });
             widget.onSubmit(result);
