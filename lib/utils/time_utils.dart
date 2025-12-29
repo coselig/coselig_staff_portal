@@ -7,8 +7,7 @@ String formatTime(String? dt) {
       final datePart = parts[0];
       final timePart = parts[1];
       final dateTime = DateTime.parse('$datePart $timePart');
-      final twDateTime = dateTime.toUtc().add(const Duration(hours: 16));
-      return '${twDateTime.hour.toString().padLeft(2, '0')}:${twDateTime.minute.toString().padLeft(2, '0')}';
+      return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
     }
     return dt;
   } catch (_) {
