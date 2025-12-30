@@ -135,11 +135,11 @@ class _ManualPunchDialogState extends State<ManualPunchDialog> {
                 onPressed: () {
                   // 找到最大的 period 號碼
                   int maxNum = 0;
-                  _periodsTimes.keys.forEach((key) {
+                  for (var key in _periodsTimes.keys) {
                     final numStr = key.replaceAll('period', '');
                     final num = int.tryParse(numStr) ?? 0;
                     if (num > maxNum) maxNum = num;
-                  });
+                  }
                   final newPeriod = 'period${maxNum + 1}';
                   setState(() {
                     _periodsTimes[newPeriod] = {

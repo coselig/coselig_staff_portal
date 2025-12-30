@@ -289,7 +289,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
                 children: [
                   if (hasCheckedIn && hasCheckedOut)
                     Text(
-                      '${periodName}：${formatTime(checkInTime)}~${formatTime(checkOutTime)}',
+                      '$periodName：${formatTime(checkInTime)}~${formatTime(checkOutTime)}',
                       style: TextStyle(fontSize: 16),
                     )
                   else if (hasCheckedIn)
@@ -299,7 +299,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
                       children: [
                         Expanded(
                           child: Text(
-                            '${periodName}上班時間：${formatTime(checkInTime)}',
+                            '$periodName上班時間：${formatTime(checkInTime)}',
                           ),
                         ),
                         ElevatedButton(
@@ -308,7 +308,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
                               final result = await showDialog<bool>(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: Text('${periodName}下班打卡'),
+                                  title: Text('$periodName下班打卡'),
                                   content: Text('是否要打卡？'),
                                   actions: [
                                     TextButton(
@@ -332,7 +332,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
                               }
                             }
                           },
-                          child: Text('${periodName}下班打卡'),
+                          child: Text('$periodName下班打卡'),
                         ),
                       ],
                     )
@@ -342,7 +342,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Expanded(
-                          child: Text('${periodName}上班時間：尚未打卡'),
+                          child: Text('$periodName上班時間：尚未打卡'),
                         ),
                         ElevatedButton(
                           onPressed: () async {
@@ -350,7 +350,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
                               final result = await showDialog<bool>(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: Text('${periodName}上班打卡'),
+                                  title: Text('$periodName上班打卡'),
                                   content: Text('是否要打卡？'),
                                   actions: [
                                     TextButton(
@@ -377,7 +377,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
                               }
                             }
                           },
-                          child: Text('${periodName}上班打卡'),
+                          child: Text('$periodName上班打卡'),
                         ),
                       ],
                     ),

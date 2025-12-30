@@ -5,7 +5,7 @@ class HolidayService {
   /// 取得台灣某年份的國定假日（行政院公開資料）
   Future<List<Holiday>> fetchTaiwanHolidays(int year) async {
     final url =
-        'https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data/${year}.json';
+        'https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data/$year.json';
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
