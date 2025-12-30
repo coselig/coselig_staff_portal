@@ -53,6 +53,7 @@ class ExcelExportService {
       '日期',
       '員工編號',
       '員工姓名',
+      '時段',
       '上班時間',
       '下班時間',
       '工作時數',
@@ -85,67 +86,156 @@ class ExcelExportService {
       final record = monthRecords[day];
       final date = DateTime(month.year, month.month, day);
 
-      // 日期
-      sheet
-          .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIndex))
-          .value = TextCellValue(_formatDate(date));
-
-      // 員工編號
-      sheet
-          .cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIndex))
-          .value = TextCellValue(employeeId);
-
-      // 員工姓名
-      sheet
-          .cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIndex))
-          .value = TextCellValue(employeeName);
-
       if (record != null) {
-        // 上班時間
-        final checkInTime = record['check_in_time'];
-        if (checkInTime != null) {
-          sheet
-              .cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: rowIndex))
-              .value = TextCellValue(checkInTime);
-        }
+        // 提取所有 period
+        final periods = <String>[];
+        record.forEach((key, value) {
+          if (key.startsWith('period') && key.contains('_check_in_time')) {
+            final period = key.split('_check_in_time')[0];
+            periods.add(period);
+          }
+        });
 
-        // 下班時間
-        final checkOutTime = record['check_out_time'];
-        if (checkOutTime != null) {
-          sheet
-              .cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: rowIndex))
-              .value = TextCellValue(checkOutTime);
-        }
+        if (periods.isEmpty) {
+          // 如果沒有 period，當作未打卡
+          _writeRow(
+            sheet,
+            rowIndex,
+            date,
+            employeeId,
+            employeeName,
+            '',
+            null,
+            null,
+            '未打卡',
+          );
+          rowIndex++;
+        } else {
+          // 為每個 period 寫一行
+          for (final period in periods) {
+            final checkInTime = record['${period}_check_in_time'];
+            final checkOutTime = record['${period}_check_out_time'];
+            final periodName = '時段${period.replaceAll('period', '')}';
 
-        // 工作時數
-        if (checkInTime != null && checkOutTime != null) {
-          final workHours = _calculateWorkHours(checkInTime, checkOutTime);
-          sheet
-              .cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: rowIndex))
-              .value = DoubleCellValue(workHours);
-        }
+            String status = '已打卡';
+            double? workHours;
+            if (checkInTime != null && checkOutTime != null) {
+              workHours = _calculateWorkHours(checkInTime, checkOutTime);
+              status = '已打卡';
+            } else if (checkInTime != null && checkOutTime == null) {
+              status = '上班未下班';
+            } else if (checkInTime == null && checkOutTime != null) {
+              status = '下班未上班';
+            }
 
-        // 狀態
-        String status = '已打卡';
-        if (checkInTime != null && checkOutTime == null) {
-          status = '上班未下班';
-        } else if (checkInTime == null && checkOutTime != null) {
-          status = '下班未上班';
+            _writeRow(
+              sheet,
+              rowIndex,
+              date,
+              employeeId,
+              employeeName,
+              periodName,
+              checkInTime,
+              checkOutTime,
+              status,
+              workHours: workHours,
+            );
+            rowIndex++;
+          }
         }
-        sheet
-            .cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: rowIndex))
-            .value = TextCellValue(status);
       } else {
-        // 狀態 - 未打卡
-        sheet
-            .cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: rowIndex))
-            .value = TextCellValue('未打卡');
+        // 未打卡
+        _writeRow(
+          sheet,
+          rowIndex,
+          date,
+          employeeId,
+          employeeName,
+          '',
+          null,
+          null,
+          '未打卡',
+        );
+        rowIndex++;
       }
-
-      rowIndex++;
     }
 
     print('✓ 打卡記錄工作表創建完成');
+  }
+
+  void _writeRow(
+    Sheet sheet,
+    int rowIndex,
+    DateTime date,
+    String employeeId,
+    String employeeName,
+    String periodName,
+    String? checkInTime,
+    String? checkOutTime,
+    String status, {
+    double? workHours,
+  }) {
+    // 日期
+    sheet
+        .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIndex))
+        .value = TextCellValue(
+      _formatDate(date),
+    );
+
+    // 員工編號
+    sheet
+        .cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIndex))
+        .value = TextCellValue(
+      employeeId,
+    );
+
+    // 員工姓名
+    sheet
+        .cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIndex))
+        .value = TextCellValue(
+      employeeName,
+    );
+
+    // 時段
+    sheet
+        .cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: rowIndex))
+        .value = TextCellValue(
+      periodName,
+    );
+
+    // 上班時間
+    if (checkInTime != null) {
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: rowIndex))
+          .value = TextCellValue(
+        checkInTime,
+      );
+    }
+
+    // 下班時間
+    if (checkOutTime != null) {
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: rowIndex))
+          .value = TextCellValue(
+        checkOutTime,
+      );
+    }
+
+    // 工作時數
+    if (workHours != null) {
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: rowIndex))
+          .value = DoubleCellValue(
+        workHours,
+      );
+    }
+
+    // 狀態
+    sheet
+        .cell(CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: rowIndex))
+        .value = TextCellValue(
+      status,
+    );
   }
 
   /// 下載Excel檔案
@@ -186,9 +276,12 @@ class ExcelExportService {
   /// 計算工作時數
   double _calculateWorkHours(String checkInTime, String checkOutTime) {
     try {
-      // 假設時間格式為 HH:mm 或 HH:mm:ss
-      final checkInParts = checkInTime.split(':');
-      final checkOutParts = checkOutTime.split(':');
+      // 時間格式為 yyyy-MM-dd HH:mm:ss，提取 HH:mm
+      final checkInTimePart = checkInTime.split(' ')[1];
+      final checkOutTimePart = checkOutTime.split(' ')[1];
+
+      final checkInParts = checkInTimePart.split(':');
+      final checkOutParts = checkOutTimePart.split(':');
 
       final checkInHour = int.parse(checkInParts[0]);
       final checkInMinute = int.parse(checkInParts[1]);
