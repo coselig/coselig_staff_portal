@@ -75,12 +75,11 @@ class DiscoveryService extends ChangeNotifier {
   final Map<String, Map<String, Map<String, dynamic>>> deviceConfigs = {
     'sunwave': {
       'p404': {
-        'types': ['dual', 'single', 'wrgb', 'rgb'],
+        'types': ['dual', 'single', 'rgb'],
         'channels': {
           'dual': ['a', 'b'],
           'single': ['1', '2', '3', '4'],
-          'wrgb': ['x'],
-          'rgb': ['x'],
+          'rgb': ['123'],
         },
       },
       'p210': {
@@ -91,12 +90,11 @@ class DiscoveryService extends ChangeNotifier {
         },
       },
       'U4': {
-        'types': ['dual', 'single', 'wrgb', 'rgb'],
+        'types': ['dual', 'single', 'rgb'],
         'channels': {
           'dual': ['a', 'b'],
           'single': ['1', '2', '3', '4'],
-          'wrgb': ['x'],
-          'rgb': ['x'],
+          'rgb': ['123'],
         },
       },
       'R8A': {

@@ -35,6 +35,23 @@ class _ManualPunchDialogState extends State<ManualPunchDialog> {
         'check_out': _parseTime(data['check_out']),
       };
     }
+    // 若已存在有時間的時段，則自動新增下一個空時段，避免使用者必須按按鈕新增
+    int maxNum = 0;
+    int highestFilled = 0;
+    _periodsTimes.forEach((period, times) {
+      final num = int.tryParse(period.replaceAll('period', '')) ?? 0;
+      if (num > maxNum) maxNum = num;
+      if (times['check_in'] != null || times['check_out'] != null) {
+        if (num > highestFilled) highestFilled = num;
+      }
+    });
+    if (highestFilled >= 1 &&
+        !_periodsTimes.containsKey('period${highestFilled + 1}')) {
+      _periodsTimes['period${highestFilled + 1}'] = {
+        'check_in': null,
+        'check_out': null,
+      };
+    }
   }
 
   TimeOfDay? _parseTime(String? timeStr) {
@@ -51,6 +68,19 @@ class _ManualPunchDialogState extends State<ManualPunchDialog> {
       }
     }
     return null;
+  }
+
+  // 當某個時段有任何時間被設定時，自動新增下一個空時段（若不存在）
+  void _maybeAddNextPeriod(String period) {
+    final num = int.tryParse(period.replaceAll('period', '')) ?? 0;
+    if (num == 0) return;
+    final times = _periodsTimes[period];
+    if (times == null) return;
+    if (times['check_in'] == null && times['check_out'] == null) return;
+    final nextPeriod = 'period${num + 1}';
+    if (!_periodsTimes.containsKey(nextPeriod)) {
+      _periodsTimes[nextPeriod] = {'check_in': null, 'check_out': null};
+    }
   }
 
   @override
@@ -92,10 +122,10 @@ class _ManualPunchDialogState extends State<ManualPunchDialog> {
                               initialTime: times['check_in'] ?? TimeOfDay.now(),
                             );
                             if (picked != null) {
-                              setState(
-                                () =>
-                                    _periodsTimes[period]!['check_in'] = picked,
-                              );
+                              setState(() {
+                                _periodsTimes[period]!['check_in'] = picked;
+                                _maybeAddNextPeriod(period);
+                              });
                             }
                           },
                         ),
@@ -117,10 +147,10 @@ class _ManualPunchDialogState extends State<ManualPunchDialog> {
                                   times['check_out'] ?? TimeOfDay.now(),
                             );
                             if (picked != null) {
-                              setState(
-                                () => _periodsTimes[period]!['check_out'] =
-                                    picked,
-                              );
+                              setState(() {
+                                _periodsTimes[period]!['check_out'] = picked;
+                                _maybeAddNextPeriod(period);
+                              });
                             }
                           },
                         ),
@@ -130,25 +160,7 @@ class _ManualPunchDialogState extends State<ManualPunchDialog> {
                   ],
                 );
               }),
-              ElevatedButton(
-                child: const Text('新增時段'),
-                onPressed: () {
-                  // 找到最大的 period 號碼
-                  int maxNum = 0;
-                  for (var key in _periodsTimes.keys) {
-                    final numStr = key.replaceAll('period', '');
-                    final num = int.tryParse(numStr) ?? 0;
-                    if (num > maxNum) maxNum = num;
-                  }
-                  final newPeriod = 'period${maxNum + 1}';
-                  setState(() {
-                    _periodsTimes[newPeriod] = {
-                      'check_in': null,
-                      'check_out': null,
-                    };
-                  });
-                },
-              ),
+
             ],
           ),
         ),
