@@ -79,7 +79,7 @@ class DiscoveryService extends ChangeNotifier {
         'channels': {
           'dual': ['a', 'b'],
           'single': ['1', '2', '3', '4'],
-          'rgb': ['123'],
+          'rgb': ['x'],
         },
       },
       'p210': {
@@ -94,7 +94,7 @@ class DiscoveryService extends ChangeNotifier {
         'channels': {
           'dual': ['a', 'b'],
           'single': ['1', '2', '3', '4'],
-          'rgb': ['123'],
+          'rgb': ['x'],
         },
       },
       'R8A': {
@@ -130,8 +130,52 @@ class DiscoveryService extends ChangeNotifier {
     return deviceConfigs[brand]?[model]?['types'] as List<String>? ?? ['dual', 'single'];
   }
 
+  // Expand a channel token into its underlying atomic channels.
+  // E.g. 'x' -> ['1','2','3'], 'a' -> ['1','2'].
+  List<String> _expandChannel(String brand, String model, String channel) {
+    final modelConfig = deviceConfigs[brand]?[model];
+    if (modelConfig == null) return [channel];
+    final channelMap = modelConfig['channel_map'] as Map<String, dynamic>?;
+    if (channelMap != null && channelMap.containsKey(channel)) {
+      final mapped = channelMap[channel];
+      if (mapped is List) return mapped.cast<String>();
+    }
+    return [channel];
+  }
+
+  /// 返回在指定模組 (moduleId) 下，針對某個 type 可選的 channel tokens（已過濾被佔用的）
+  List<String> getSelectableChannelsForModule(
+    String brand,
+    String model,
+    String type,
+    String moduleId,
+  ) {
+    final tokens =
+        deviceConfigs[brand]?[model]?['channels']?[type] as List<String>? ??
+        ['1'];
+
+    // 已被佔用的 atomic channels
+    final existingDevices = _devices
+        .where((d) => d.moduleId == moduleId)
+        .toList();
+    final usedAtoms = <String>{};
+    for (final d in existingDevices) {
+      usedAtoms.addAll(_expandChannel(d.brand, d.model, d.channel));
+    }
+
+    final selectable = <String>[];
+    for (final token in tokens) {
+      final required = _expandChannel(brand, model, token).toSet();
+      // token 可選的條件：它所需的 atomic channels 與已用的 atomic channels 沒有交集
+      if (required.intersection(usedAtoms).isEmpty) {
+        selectable.add(token);
+      }
+    }
+    return selectable;
+  }
+
   /// 檢查是否可以添加指定的裝置
-  /// 規則：同一個模組ID的所有可用channel都必須被使用完才能阻止添加
+  /// 規則改為：以 atomic channel (擴展後) 為粒度。如果 newDevice 需要的所有 atomic channels 都未被佔用，則允許添加
   bool canAddDevice(Device newDevice) {
     // 獲取該模組ID的所有現有裝置
     final existingDevices = _devices
@@ -139,35 +183,47 @@ class DiscoveryService extends ChangeNotifier {
         .toList();
 
     if (existingDevices.isEmpty) {
-      // 如果沒有現有裝置，可以添加
       return true;
     }
 
-    // 獲取該model的所有可用channel（所有type的channel的聯集）
-    final allAvailableChannels = <String>{};
+    // 獲取該 model 的 atomic channels（所有 token 擴展後的聯集）
+    final allAvailableAtoms = <String>{};
     final modelConfig = deviceConfigs[newDevice.brand]?[newDevice.model];
     if (modelConfig != null) {
       final channelsMap = modelConfig['channels'] as Map<String, dynamic>;
       for (final channels in channelsMap.values) {
         if (channels is List) {
-          allAvailableChannels.addAll(channels.cast<String>());
+          for (final token in channels.cast<String>()) {
+            allAvailableAtoms.addAll(
+              _expandChannel(newDevice.brand, newDevice.model, token),
+            );
+          }
         }
       }
     }
 
     // 如果沒有配置，默認允許
-    if (allAvailableChannels.isEmpty) {
+    if (allAvailableAtoms.isEmpty) {
       return true;
     }
 
-    // 獲取已被使用的channel
-    final usedChannels = existingDevices.map((d) => d.channel).toSet();
+    // 計算已被佔用的 atomic channels
+    final usedAtoms = <String>{};
+    for (final d in existingDevices) {
+      usedAtoms.addAll(_expandChannel(d.brand, d.model, d.channel));
+    }
 
-    // 檢查是否還有未使用的channel
-    final availableChannels = allAvailableChannels.difference(usedChannels);
+    final availableAtoms = allAvailableAtoms.difference(usedAtoms);
 
-    // 如果還有可用的channel，就可以添加新裝置
-    return availableChannels.isNotEmpty;
+    // newDevice 需要的 atomic channels
+    final requiredAtoms = _expandChannel(
+      newDevice.brand,
+      newDevice.model,
+      newDevice.channel,
+    ).toSet();
+
+    // 只有當 newDevice 所需的所有 atomic channels 都是可用的，才能添加
+    return requiredAtoms.difference(availableAtoms).isEmpty;
   }
 
   Future<void> addDevice(Device device) async {
