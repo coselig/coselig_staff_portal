@@ -1,6 +1,6 @@
-import 'package:coselig_staff_portal/pages/discovery_generate_page.dart';
 import 'package:coselig_staff_portal/services/attendance_service.dart';
 import 'package:coselig_staff_portal/services/auth_service.dart';
+import 'package:coselig_staff_portal/widgets/buttons.dart';
 import 'package:coselig_staff_portal/widgets/month_year_picker.dart';
 import 'package:coselig_staff_portal/widgets/attendance_calendar_view.dart';
 import 'package:coselig_staff_portal/widgets/theme_toggle_switch.dart';
@@ -87,7 +87,6 @@ class _AdminPageState extends State<AdminPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authService = context.read<AuthService>();
 
     return Scaffold(
       appBar: AppBar(
@@ -100,22 +99,9 @@ class _AdminPageState extends State<AdminPage> {
           },
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.build),
-            tooltip: '裝置註冊表生成器',
-            onPressed: () {
-              navigatorKey.currentState!.pushNamed('/discovery_generate');
-            },
-          ),
+          registerGenerateButton(),
           const ThemeToggleSwitch(),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: '登出',
-            onPressed: () async {
-              await authService.logout();
-              navigatorKey.currentState!.pushReplacementNamed('/login');
-            },
-          ),
+          logoutButton(context),
         ],
       ),
       body: Padding(
