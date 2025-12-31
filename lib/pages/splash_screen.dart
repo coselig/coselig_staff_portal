@@ -1,3 +1,4 @@
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
@@ -15,6 +16,12 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   bool _navigated = false;
   bool _autoLoginStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    html.document.title = 'Coselig 員工系統';
+  }
 
   @override
   void didChangeDependencies() {

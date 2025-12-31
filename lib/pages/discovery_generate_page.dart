@@ -1,3 +1,4 @@
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:coselig_staff_portal/widgets/theme_toggle_switch.dart';
@@ -47,6 +48,12 @@ class _DiscoveryGeneratePageState extends State<DiscoveryGeneratePage> {
   Map<String, List<String>> get models => deviceConfigs.map(
     (brand, modelsMap) => MapEntry(brand, modelsMap.keys.toList()),
   );
+
+  @override
+  void initState() {
+    super.initState();
+    html.document.title = '裝置註冊表生成器';
+  }
 
   // Combined map for device configurations: brand -> model -> {'types': [...], 'channels': {type: [...]}}
   final Map<String, Map<String, Map<String, dynamic>>> deviceConfigs = {

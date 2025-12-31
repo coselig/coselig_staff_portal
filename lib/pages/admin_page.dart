@@ -1,3 +1,4 @@
+import 'dart:html' as html;
 import 'package:coselig_staff_portal/services/attendance_service.dart';
 import 'package:coselig_staff_portal/services/auth_service.dart';
 import 'package:coselig_staff_portal/widgets/buttons.dart';
@@ -28,6 +29,7 @@ class _AdminPageState extends State<AdminPage> {
   @override
   void initState() {
     super.initState();
+    html.document.title = '管理員系統';
     _fetchEmployees();
   }
 

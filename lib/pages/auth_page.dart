@@ -1,3 +1,4 @@
+import 'dart:html' as html;
 import 'package:coselig_staff_portal/widgets/buttons.dart';
 import 'package:coselig_staff_portal/widgets/login_frame.dart';
 import 'package:coselig_staff_portal/widgets/register_frame.dart';
@@ -16,6 +17,12 @@ class _AuthPageState extends State<AuthPage> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   String mode = "login";
+
+  @override
+  void initState() {
+    super.initState();
+    html.document.title = '員工入口';
+  }
 
   @override
   Widget build(BuildContext context) {

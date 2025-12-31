@@ -1,3 +1,4 @@
+import 'dart:html' as html;
 import 'package:coselig_staff_portal/services/holiday_service.dart';
 import 'package:coselig_staff_portal/utils/time_utils.dart';
 import 'package:coselig_staff_portal/services/attendance_service.dart';
@@ -103,6 +104,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
   @override
   void initState() {
     super.initState();
+    html.document.title = '員工系統';
     Future.microtask(_initUserAndAttendance);
     Future.microtask(_fetchWorkingStaff);
     Future.microtask(_fetchHolidays);
