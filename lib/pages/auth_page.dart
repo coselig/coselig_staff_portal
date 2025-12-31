@@ -1,3 +1,4 @@
+import 'package:coselig_staff_portal/widgets/buttons.dart';
 import 'package:coselig_staff_portal/widgets/login_frame.dart';
 import 'package:coselig_staff_portal/widgets/register_frame.dart';
 import 'package:coselig_staff_portal/widgets/theme_toggle_switch.dart';
@@ -22,24 +23,25 @@ class _AuthPageState extends State<AuthPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('員工入口'),
-        actions: const [ThemeToggleSwitch()],
+        actions: [ThemeToggleSwitch(), registerGenerateButton()],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Center(
-          child: Column(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              
               mode == "login" ? const LoginFrame() : const RegisterFrame(),
-              SizedBox(height: 16),
-              ElevatedButton(
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Color.fromARGB(40, 200, 100, 100),
+                ),
                 onPressed: () {
                   setState(() {
                     mode = mode == "login" ? "register" : "login";
                   });
                 },
-                child: Text(mode == "login" ? "我要註冊" : "我要登入"),
+                child: Text(mode == "login" ? "\n註\n冊\n" : "\n登\n入\n"),
               ),
             ],
           ),

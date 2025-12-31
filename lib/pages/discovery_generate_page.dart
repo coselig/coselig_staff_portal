@@ -43,11 +43,58 @@ class DiscoveryGeneratePage extends StatefulWidget {
 
 class _DiscoveryGeneratePageState extends State<DiscoveryGeneratePage> {
   final List<Device> devices = [];
-  final List<String> deviceTypes = ['dual', 'single', 'wrgb', 'rgb', 'relay'];
-  final List<String> brands = ['sunwave', 'guo'];
-  final Map<String, List<String>> models = {
-    'sunwave': ['p404', 'p210', 'R410', 'R8A', 'U4'],
-    'guo': ['p805'],
+  List<String> get brands => deviceConfigs.keys.toList();
+  Map<String, List<String>> get models => deviceConfigs.map(
+    (brand, modelsMap) => MapEntry(brand, modelsMap.keys.toList()),
+  );
+
+  // Combined map for device configurations: brand -> model -> {'types': [...], 'channels': {type: [...]}}
+  final Map<String, Map<String, Map<String, dynamic>>> deviceConfigs = {
+    'sunwave': {
+      'p404': {
+        'types': ['dual', 'single', 'wrgb', 'rgb'],
+        'channels': {
+          'dual': ['a', 'b'],
+          'single': ['1', '2', '3', '4'],
+          'wrgb': ['x'],
+          'rgb': ['x'],
+        },
+      },
+      'p210': {
+        'types': ['dual', 'single'],
+        'channels': {
+          'dual': ['a'],
+          'single': ['1', '2'],
+        },
+      },
+      'U4': {
+        'types': ['dual', 'single', 'wrgb', 'rgb'],
+        'channels': {
+          'dual': ['a', 'b'],
+          'single': ['1', '2', '3', '4'],
+          'wrgb': ['x'],
+          'rgb': ['x'],
+        },
+      },
+      'R8A': {
+        'types': ['relay'],
+        'channels': {
+          'relay': ['1', '2', '3', '4', '5', '6', '7', '8'],
+        },
+      },
+      'R410': {
+        'types': ['relay'],
+        'channels': {
+          'relay': ['1', '2', '3', '4'],
+        },
+      },
+    },
+    'guo': {
+      'p805': {
+        'types': ['dual', 'single'],
+        'channels': {},
+      },
+    },
   };
 
   String selectedBrand = 'sunwave';
@@ -60,66 +107,13 @@ class _DiscoveryGeneratePageState extends State<DiscoveryGeneratePage> {
   String generatedOutput = '';
 
   List<String> getAvailableChannels(String brand, String model, String type) {
-    if (brand == 'sunwave') {
-      if (model == 'p404') {
-        switch (type) {
-          case 'dual':
-            return ['a', 'b'];
-          case 'single':
-            return ['1', '2', '3', '4'];
-          case 'wrgb':
-          case 'rgb':
-            return ['x'];
-          default:
-            return ['1'];
-        }
-      } else if (model == 'p210') {
-        switch (type) {
-          case 'dual':
-            return ['a'];
-          case 'single':
-            return ['1', '2'];
-          default:
-            return ['1'];
-        }
-      } else if (model == 'U4') {
-        switch (type) {
-          case 'dual':
-            return ['a', 'b'];
-          case 'single':
-            return ['1', '2', '3', '4'];
-          case 'wrgb':
-          case 'rgb':
-            return ['x'];
-          default:
-            return ['1'];
-        }
-      } else if (model == 'R8A' || model == 'R410') {
-        if (type == 'relay') {
-          if (model == 'R8A') {
-            return ['1', '2', '3', '4', '5', '6', '7', '8'];
-          } else if (model == 'R410') {
-            return ['1', '2', '3', '4'];
-          }
-        }
-        return ['1'];
-      }
-    }
-    // Default for other models
-    return ['1'];
+    final channelsMap =
+        deviceConfigs[brand]?[model]?['channels'] as Map<String, List<String>>;
+    return channelsMap[type] ?? ['1'];
   }
 
   List<String> getAvailableTypes(String brand, String model) {
-    if (brand == 'sunwave') {
-      if (model == 'R8A' || model == 'R410') {
-        return ['relay'];
-      } else if (model == 'p404' || model == 'U4') {
-        return ['dual', 'single', 'wrgb', 'rgb'];
-      } else {
-        return ['dual', 'single'];
-      }
-    }
-    return ['dual', 'single'];
+    return deviceConfigs[brand]?[model]?['types'] as List<String>;
   }
 
   void addDevice() {

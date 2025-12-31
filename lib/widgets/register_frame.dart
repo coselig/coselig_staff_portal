@@ -1,3 +1,4 @@
+import 'package:coselig_staff_portal/main.dart';
 import 'package:coselig_staff_portal/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -50,21 +51,21 @@ class _RegisterFrameState extends State<RegisterFrame> {
               );
               if (success) {
                 if (!mounted) return;
-                Navigator.of(context).pushReplacementNamed('/home');
+                navigatorKey.currentState!.pushReplacementNamed('/home');
               }
               setState(() {});
             },
             child: const Text('註冊'),
           ),
-          SizedBox(height: 8),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Text(
-                authService.message,
-                style: const TextStyle(fontFamily: 'Courier', fontSize: 14),
-              ),
-            ),
-          ),
+          // SizedBox(height: 8),
+          // Expanded(
+          //   child: SingleChildScrollView(
+          //     child: Text(
+          //       authService.message,
+          //       style: const TextStyle(fontFamily: 'Courier', fontSize: 14),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );
