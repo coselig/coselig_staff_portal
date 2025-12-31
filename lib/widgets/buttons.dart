@@ -20,7 +20,7 @@ Widget logoutButton(BuildContext context) {
     tooltip: '登出',
     onPressed: () {
       authService.logout();
-      navigatorKey.currentState!.pushNamed('/login');
+      navigatorKey.currentState!.pushReplacementNamed('/login');
     },
   );
 }
