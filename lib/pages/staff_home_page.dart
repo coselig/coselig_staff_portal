@@ -1,6 +1,7 @@
 import 'package:coselig_staff_portal/services/holiday_service.dart';
 import 'package:coselig_staff_portal/utils/time_utils.dart';
 import 'package:coselig_staff_portal/services/attendance_service.dart';
+import 'package:coselig_staff_portal/widgets/buttons.dart';
 import 'package:coselig_staff_portal/widgets/theme_toggle_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -222,16 +223,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
             },
           ),
           ThemeToggleSwitch(),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: '登出',
-            onPressed: () async {
-              final attendance = context.read<AttendanceService>();
-              attendance.clear();
-              await authService.logout();
-              navigatorKey.currentState!.pushReplacementNamed('/login');
-            },
-          ),
+          logoutButton(context),
         ],
       ),
       drawer: Drawer(
@@ -243,7 +235,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
                 leading: Icon(Icons.admin_panel_settings),
                 title: Text('管理員系統'),
                 onTap: () {
-                  Navigator.of(context).pushNamed('/admin');
+                  navigatorKey.currentState!.pushNamed('/admin');
                 },
               ),
               const Divider(),
@@ -252,7 +244,7 @@ class _StaffHomePageState extends State<StaffHomePage> {
               leading: Icon(Icons.build),
               title: Text('裝置註冊表生成器'),
               onTap: () {
-                Navigator.of(context).pushNamed('/discovery_generate');
+                navigatorKey.currentState!.pushNamed('/discovery_generate');
               },
             ),
             ListTile(
@@ -472,11 +464,6 @@ class _StaffHomePageState extends State<StaffHomePage> {
                         _selectedMonth.month == DateTime.now().month)
                     ? DateTime.now().day
                     : null,
-                // debug
-                // ignore: avoid_print
-                // ignore: avoid_print
-                // ignore: avoid_print
-                // ignore: avoid_print
               ),
             ),
           ),

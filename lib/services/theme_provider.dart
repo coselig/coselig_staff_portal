@@ -22,10 +22,10 @@ class ThemeProvider extends ChangeNotifier {
 
 final ThemeData lightTheme = ThemeData(
   brightness: Brightness.light,
-  primarySwatch: Colors.blue,
+  useSystemColors: true,
 );
 
 final ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
-  primarySwatch: Colors.blue,
+  useSystemColors: true,
 );
